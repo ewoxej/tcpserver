@@ -71,34 +71,34 @@ jsonrpcpp::response_ptr parseRequest( std::string str )
    {
       return nullptr;
    }
-   if( entity->is_request() )
-   {
-      jsonrpcpp::request_ptr request = std::dynamic_pointer_cast<jsonrpcpp::Request>( entity );
-      if( request->method == "filelist" )
+      if( entity->is_request() )
       {
-         request->params.param_array.push_back( folderPath );
-         return std::dynamic_pointer_cast<jsonrpcpp::Response>( filelist( 0, request->params ) );
-      }
-      else if( request->method == "upload" )
-      {
-         request->params.param_array.push_back( folderPath );
-         return std::dynamic_pointer_cast<jsonrpcpp::Response>( copyfile( 0, request->params ) );
-      }
-      else if( request->method == "download" )
-      {
-         request->params.param_array.insert( request->params.param_array.begin(), folderPath );
-         return std::dynamic_pointer_cast<jsonrpcpp::Response>( copyfile( 0, request->params ) );
-      }
-      else if( request->method == "sync" )
-      {
-         request->params.param_array.push_back( folderPath );
-         jsonrpcpp::response_ptr resp = std::dynamic_pointer_cast<jsonrpcpp::Response> ( sync( 0, request->params ) );
-         return std::dynamic_pointer_cast<jsonrpcpp::Response>( sync( 0, request->params ) );
-      }
-      else
-      {
-         throw jsonrpcpp::MethodNotFoundException( *request );
-      }
+         jsonrpcpp::request_ptr request = std::dynamic_pointer_cast<jsonrpcpp::Request>( entity );
+         if( request->method == "filelist" )
+         {
+            request->params.param_array.push_back( folderPath );
+            return std::dynamic_pointer_cast<jsonrpcpp::Response>( filelist( 0, request->params ) );
+         }
+         else if( request->method == "upload" )
+         {
+            request->params.param_array.push_back( folderPath );
+            return std::dynamic_pointer_cast<jsonrpcpp::Response>( copyfile( 0, request->params ) );
+         }
+         else if( request->method == "download" )
+         {
+            request->params.param_array.insert( request->params.param_array.begin(), folderPath );
+            return std::dynamic_pointer_cast<jsonrpcpp::Response>( copyfile( 0, request->params ) );
+         }
+         else if( request->method == "sync" )
+         {
+            request->params.param_array.push_back( folderPath );
+            jsonrpcpp::response_ptr resp = std::dynamic_pointer_cast<jsonrpcpp::Response> ( sync( 0, request->params ) );
+            return std::dynamic_pointer_cast<jsonrpcpp::Response>( sync( 0, request->params ) );
+         }
+         else
+         {
+            return nullptr;
+         }
    }
    return nullptr;
 }

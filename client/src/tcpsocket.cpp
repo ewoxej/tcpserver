@@ -1,4 +1,10 @@
 #include "tcpsocket.h"
+#include <QDir>
+#include <QTcpSocket>
+#include <iostream>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonArray>
 
 TCPSocket::TCPSocket( QObject *parent ) : QObject( parent ), path( QDir::currentPath() )
 {

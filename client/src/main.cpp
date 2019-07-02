@@ -7,7 +7,7 @@ int main( int argc, char* argv[] )
    quint16 port;
    if( argc < 3 )
    {
-      std::cout << "Command line arguments should be next: ip port path";
+      std::cout << "Command line arguments should be next: ip port path" << std::endl;
       return -1;
    }
    serveraddr = argv[1];
