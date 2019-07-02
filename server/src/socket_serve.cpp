@@ -8,7 +8,7 @@
 std::vector<std::thread*> threads;
 const int bufferSize = 1024;
 
-int SocketInit( ULONG ip, USHORT port )
+int socketInit( ULONG ip, USHORT port )
 {
    char buff[bufferSize];
    if( WSAStartup( 0x0202, reinterpret_cast<WSADATA*>( &buff[0] ) ) )

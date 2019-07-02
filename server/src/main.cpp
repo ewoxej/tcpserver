@@ -154,9 +154,9 @@ INT_PTR APIENTRY DlgProc( HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPar
          GetWindowTextA( GetDlgItem( hwndDlg, IDC_EDIT2 ), serviceName, MAX_PATH );
          GetWindowTextA( GetDlgItem( hwndDlg, IDC_EDIT3 ), cport, portArraySize );
          port = std::stoi( cport );
-         serverTh = std::thread( SocketInit, longIP, port );
+         serverTh = std::thread( socketInit, longIP, port );
          serverTh.detach();
-         SocketInit( longIP, port );
+         socketInit( longIP, port );
       }
 
       case IDCANCEL:
