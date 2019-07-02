@@ -72,19 +72,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\chaparyn\source\repos\JSONRPCService\third_party\json-develop\single_include\nlohmann;C:\Users\chaparyn\source\repos\JSONRPCService\third_party\json-develop\include;C:\Users\chaparyn\source\repos\JSONRPCService\third_party;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\third_party\json-develop\single_include\nlohmann;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\chaparyn\source\repos\JSONRPCService\third_party\json-develop\single_include\nlohmann;C:\Users\chaparyn\source\repos\JSONRPCService\third_party\json-develop\include;C:\Users\chaparyn\source\repos\JSONRPCService\third_party;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\third_party\json-develop\single_include\nlohmann;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Users\chaparyn\source\repos\JSONRPCService\third_party\json-develop\single_include\nlohmann;C:\Users\chaparyn\source\repos\JSONRPCService\third_party\json-develop\include;C:\Users\chaparyn\source\repos\JSONRPCService\third_party;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\third_party\json-develop\single_include\nlohmann;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Users\chaparyn\source\repos\JSONRPCService\third_party\json-develop\single_include\nlohmann;C:\Users\chaparyn\source\repos\JSONRPCService\third_party\json-develop\include;C:\Users\chaparyn\source\repos\JSONRPCService\third_party;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\third_party\json-develop\single_include\nlohmann;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

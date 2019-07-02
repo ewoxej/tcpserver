@@ -4,8 +4,8 @@ CONFIG -= app_bundle
 QT += network
 
 SOURCES += \
-        main.cpp \
-        tcpsocket.cpp
+        ../src/main.cpp \
+        ../src/tcpsocket.cpp
 
 HEADERS += \
-    tcpsocket.h
+    ../src/tcpsocket.h

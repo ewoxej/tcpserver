@@ -8,7 +8,7 @@
 #include <QTcpSocket>
 #include <QDir>
 #include <iostream>
-
+#include <string>
 const int bufferSize = 1024;
 class TCPSocket : public QObject
 {

@@ -11,7 +11,9 @@ jsonrpcpp::response_ptr filelist( const jsonrpcpp::Id& id, const jsonrpcpp::Para
    while( res )
    {
       if( strcmp( data.cFileName, "." ) != 0 && strcmp( data.cFileName, ".." ) != 0 )
+      {
          files.push_back( data.cFileName );
+      }
       res = FindNextFileA( hfile, &data );
    }
    FindClose( hfile );
@@ -20,33 +22,37 @@ jsonrpcpp::response_ptr filelist( const jsonrpcpp::Id& id, const jsonrpcpp::Para
 
 jsonrpcpp::response_ptr copyfile( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
 {
-   std::string path_src = params.get( 0 );
-   std::string path_dest = params.get( 1 );
-   bool res = CopyFileA( path_src.c_str(), path_dest.c_str(), TRUE );
+   std::string pathSrc = params.get( 0 );
+   std::string pathDest = params.get( 1 );
+   bool res = CopyFileA( pathSrc.c_str(), pathDest.c_str(), TRUE );
    return std::make_shared<jsonrpcpp::Response>( id, res );
 }
 
 jsonrpcpp::response_ptr sync( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
 {
-   std::string path_src = params.get( 0 );
-   std::string path_dest = params.get( 1 );
+   std::string pathSrc = params.get( 0 );
+   std::string pathDest = params.get( 1 );
    WIN32_FIND_DATAA data;
 
-   HANDLE hfile = FindFirstFileA( ( std::string( path_src ) + "\\*.*" ).c_str(), &data );
+   HANDLE hfile = FindFirstFileA( ( std::string( pathSrc ) + "\\*.*" ).c_str(), &data );
    bool res = true;
    while( res )
    {
       if( strcmp( data.cFileName, "." ) != 0 && strcmp( data.cFileName, ".." ) != 0 )
-         CopyFileA( ( path_src + "\\" + data.cFileName ).c_str(), ( path_dest + "\\" + data.cFileName ).c_str(), TRUE );
+      {
+         CopyFileA( ( pathSrc + "\\" + data.cFileName ).c_str(), ( pathDest + "\\" + data.cFileName ).c_str(), TRUE );
+      }
       res = FindNextFileA( hfile, &data );
    }
    FindClose( hfile );
-   hfile = FindFirstFileA( ( std::string( path_dest ) + "\\*.*" ).c_str(), &data );
+   hfile = FindFirstFileA( ( std::string( pathDest ) + "\\*.*" ).c_str(), &data );
    res = true;
    while( res )
    {
       if( strcmp( data.cFileName, "." ) != 0 && strcmp( data.cFileName, ".." ) != 0 )
-         CopyFileA( ( path_dest + "\\" + data.cFileName ).c_str(), ( path_src + "\\" + data.cFileName ).c_str(), TRUE );
+      {
+         CopyFileA( ( pathDest + "\\" + data.cFileName ).c_str(), ( pathSrc + "\\" + data.cFileName ).c_str(), TRUE );
+      }
       res = FindNextFileA( hfile, &data );
    }
    FindClose( hfile );
@@ -61,7 +67,7 @@ jsonrpcpp::response_ptr parseRequest( std::string str )
    {
       entity = parser.parse( str );
    }
-   catch( ... )
+   catch( jsonrpcpp::ParseErrorException )
    {
       return nullptr;
    }
@@ -90,7 +96,9 @@ jsonrpcpp::response_ptr parseRequest( std::string str )
          return std::dynamic_pointer_cast<jsonrpcpp::Response>( sync( 0, request->params ) );
       }
       else
+      {
          throw jsonrpcpp::MethodNotFoundException( *request );
+      }
    }
    return nullptr;
 }

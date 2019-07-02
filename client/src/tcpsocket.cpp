@@ -27,9 +27,10 @@ void TCPSocket::readTcpData()
    {
       recv_bytes = socket->read( buff, bufferSize );
       buff[recv_bytes] = 0;
-      std::cout << buff << std::endl;
+      std::wcout << buff << std::endl;
       std::cin >> buff;
-      if( !strcmp( &buff[0], "sync" ) )
+      std::string strBuff( buff );
+      if( strBuff == "sync" )
       {
          QJsonObject jsonreq;
          jsonreq["jsonrpc"] = "2.0";
@@ -39,10 +40,10 @@ void TCPSocket::readTcpData()
          jsonreq["params"] = jarray;
          jsonreq["id"] = 0;
          QJsonDocument doc( jsonreq );
-         strcpy_s( buff, doc.toJson( QJsonDocument::Compact ) );
-         std::cout << buff << std::endl;
+         strBuff = doc.toJson( QJsonDocument::Compact ).toStdString();
+         std::cout << strBuff << std::endl;
       }
-      if( !strcmp( &buff[0], "filelist" ) )
+      if( strBuff == "filelist" )
       {
          QJsonObject jsonreq;
          jsonreq["jsonrpc"] = "2.0";
@@ -51,10 +52,10 @@ void TCPSocket::readTcpData()
          jsonreq["params"] = jarray;
          jsonreq["id"] = 0;
          QJsonDocument doc( jsonreq );
-         strcpy_s( buff, doc.toJson( QJsonDocument::Compact ) );
-         std::cout << buff << std::endl;
+         strBuff = doc.toJson( QJsonDocument::Compact ).toStdString();
+         std::cout << strBuff << std::endl;
       }
-      socket->write( std::string( buff ).c_str(), strlen( buff ) );
+      socket->write( strBuff.c_str(), strBuff.length() );
       socket->waitForReadyRead();
    }
 }
