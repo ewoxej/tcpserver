@@ -1,9 +1,5 @@
 #pragma once
-#include <string>
-#include <vector>
-#include <winsock2.h>
-#include <windows.h>
-#pragma comment(lib,"ws2_32.lib")
+#include <Windows.h>
 
 extern CHAR folderPath[MAX_PATH];
 extern CHAR serviceName[MAX_PATH];

@@ -36,31 +36,24 @@ void TCPSocket::readTcpData()
       std::wcout << buff << std::endl;
       std::cin >> buff;
       std::string strBuff( buff );
-      if( strBuff == "sync" )
+      QJsonObject jsonreq;
+      jsonreq["jsonrpc"] = "2.0";
+      jsonreq["method"] = buff;
+      QJsonArray jarray;
+      jarray.push_back( path );
+      if( strBuff == "download" || strBuff == "upload" )
       {
-         QJsonObject jsonreq;
-         jsonreq["jsonrpc"] = "2.0";
-         jsonreq["method"] = "sync";
-         QJsonArray jarray;
-         jarray.push_back( path );
-         jsonreq["params"] = jarray;
-         jsonreq["id"] = 0;
-         QJsonDocument doc( jsonreq );
-         strBuff = doc.toJson( QJsonDocument::Compact ).toStdString();
-         std::cout << strBuff << std::endl;
+         std::cout << "Enter filename:";
+         std::cin >> buff;
+         jarray.push_back( buff );
+
       }
-      if( strBuff == "filelist" )
-      {
-         QJsonObject jsonreq;
-         jsonreq["jsonrpc"] = "2.0";
-         jsonreq["method"] = "filelist";
-         QJsonArray jarray;
-         jsonreq["params"] = jarray;
-         jsonreq["id"] = 0;
-         QJsonDocument doc( jsonreq );
-         strBuff = doc.toJson( QJsonDocument::Compact ).toStdString();
-         std::cout << strBuff << std::endl;
-      }
+
+      jsonreq["params"] = jarray;
+      jsonreq["id"] = 0;
+      QJsonDocument doc( jsonreq );
+      strBuff = doc.toJson( QJsonDocument::Compact ).toStdString();
+      std::cout << strBuff << std::endl;
       socket->write( strBuff.c_str(), strBuff.length() );
       socket->waitForReadyRead();
    }

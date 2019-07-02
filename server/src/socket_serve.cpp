@@ -1,4 +1,9 @@
+#define WIN32_LEAN_AND_MEAN
 #include "socket_serve.h"
+#include <string>
+#include <vector>
+#include <winsock2.h>
+#pragma comment(lib,"ws2_32.lib")
 #include <tchar.h>
 #include <vector>
 #include <memory>
