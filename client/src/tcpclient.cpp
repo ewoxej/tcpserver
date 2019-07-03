@@ -43,6 +43,7 @@ void TCPClient::readTcpData()
       jsonreq["method"] = buff;
       QJsonArray jarray;
       jarray.push_back( m_path );
+      jarray.push_back( QDir::currentPath() );
       if( strBuff == "download" || strBuff == "upload" )
       {
          std::cout << "Enter filename:";

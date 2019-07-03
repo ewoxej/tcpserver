@@ -7,6 +7,25 @@
 
 namespace fs = std::experimental::filesystem;
 
+void enumerateFiles(std::string path,Json* files)
+{
+   WIN32_FIND_DATAA data;
+   Json nestedFiles;
+   HANDLE hfile = FindFirstFileA( ( path + "\\*.*" ).c_str(), &data );
+   bool res = true;
+   while( res )
+   {
+      if( strcmp( data.cFileName, "." ) != 0 && strcmp( data.cFileName, ".." ) != 0 )
+      {
+         nestedFiles.push_back( data.cFileName );
+         if( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
+            enumerateFiles( path + "\\" + data.cFileName, &nestedFiles );
+      }
+      res = FindNextFileA( hfile, &data );
+   }
+   FindClose( hfile );
+   files->push_back( nestedFiles );
+}
 jsonrpcpp::response_ptr RequestHandler::filelist( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
 {
    std::string fPath = params.get( 1 );
@@ -20,6 +39,8 @@ jsonrpcpp::response_ptr RequestHandler::filelist( const jsonrpcpp::Id& id, const
       if( strcmp( data.cFileName, "." ) != 0 && strcmp( data.cFileName, ".." ) != 0 )
       {
          files.push_back( data.cFileName );
+         if( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
+            enumerateFiles( fPath + "\\" + data.cFileName, &files );
       }
       res = FindNextFileA( hfile, &data );
    }
@@ -39,12 +60,14 @@ jsonrpcpp::response_ptr RequestHandler::copyfile( const jsonrpcpp::Id& id, const
 jsonrpcpp::response_ptr RequestHandler::sync( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
 {
    std::string pathSrc = params.get( 0 );
-   std::string pathDest = params.get( 1 );
+   std::string pathClient = params.get( 1 );
+   std::string pathDest = params.get( 2 );
    WIN32_FIND_DATAA data;
-
+   if( !fs::exists( pathSrc ) ) pathSrc = pathClient + "\\" + pathSrc;
+   if( !fs::exists( pathSrc ) || !( fs::exists( pathDest ) ) )    return std::make_shared<jsonrpcpp::Response>( id, false );
    HANDLE hfile = FindFirstFileA( ( std::string( pathSrc ) + "\\*.*" ).c_str(), &data );
    bool res = true;
-   if( !fs::exists( pathSrc ) || !( fs::exists( pathDest ) ) )    return std::make_shared<jsonrpcpp::Response>( id, false );
+
    while( res )
    {
       if( strcmp( data.cFileName, "." ) != 0 && strcmp( data.cFileName, ".." ) != 0 )
@@ -97,7 +120,9 @@ jsonrpcpp::response_ptr RequestHandler::parseRequest( std::string str )
       else if( request->method == "download" || request->method == "upload" )
       {
          std::string srcpath = request->params.get( 0 );
-         std::string filename = request->params.get( 1 );
+         std::string clientpath = request->params.get( 1 );
+         std::string filename = request->params.get( 2 );
+         if( !fs::exists( srcpath ) ) srcpath = clientpath + "\\" + srcpath;
          request->params.param_array.clear();
          if( request->method == "download" )
             request->params.param_array.push_back( std::string( folderPath ) + "\\" + filename );
