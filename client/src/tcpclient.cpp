@@ -1,4 +1,4 @@
-#include "tcpsocket.h"
+#include "tcpclient.h"
 #include <QDir>
 #include <QTcpSocket>
 #include <iostream>
@@ -6,34 +6,34 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 
-const int TCPSocket::bufferSize = 1024;
+const int TCPClient::bufferSize = 1024;
 
-TCPSocket::TCPSocket( QObject *parent ) : QObject( parent ), path( QDir::currentPath() )
+TCPClient::TCPClient( QObject *parent ) : QObject( parent ), m_path( QDir::currentPath() )
 {
 
 }
 
-void TCPSocket::connectTcp( QString ip, quint16 port )
+void TCPClient::connectTcp( QString ip, quint16 port )
 {
-   socket = new QTcpSocket( this );
-   connect( socket, SIGNAL( readyRead() ), SLOT( readTcpData() ) );
-   socket->connectToHost( ip, port );
-   socket->waitForConnected();
-   socket->waitForReadyRead();
+   m_socket = new QTcpSocket( this );
+   connect( m_socket, SIGNAL( readyRead() ), SLOT( readTcpData() ) );
+   m_socket->connectToHost( ip, port );
+   m_socket->waitForConnected();
+   m_socket->waitForReadyRead();
 }
 
-void TCPSocket::setPath( QString newPath )
+void TCPClient::setPath( QString newPath )
 {
-   path = newPath;
+   m_path = newPath;
 }
 
-void TCPSocket::readTcpData()
+void TCPClient::readTcpData()
 {
    char buff[bufferSize];
    int recv_bytes;
-   while( socket->isOpen() )
+   while( m_socket->isOpen() )
    {
-      recv_bytes = socket->read( buff, bufferSize );
+      recv_bytes = m_socket->read( buff, bufferSize );
       buff[recv_bytes] = 0;
       std::wcout << buff << std::endl;
       std::cin >> buff;
@@ -42,7 +42,7 @@ void TCPSocket::readTcpData()
       jsonreq["jsonrpc"] = "2.0";
       jsonreq["method"] = buff;
       QJsonArray jarray;
-      jarray.push_back( path );
+      jarray.push_back( m_path );
       if( strBuff == "download" || strBuff == "upload" )
       {
          std::cout << "Enter filename:";
@@ -56,7 +56,7 @@ void TCPSocket::readTcpData()
       QJsonDocument doc( jsonreq );
       strBuff = doc.toJson( QJsonDocument::Compact ).toStdString();
       std::cout << strBuff << std::endl;
-      socket->write( strBuff.c_str(), strBuff.length() );
-      socket->waitForReadyRead();
+      m_socket->write( strBuff.c_str(), strBuff.length() );
+      m_socket->waitForReadyRead();
    }
 }

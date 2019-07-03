@@ -66,7 +66,7 @@ int socketInit( ULONG ip, USHORT port )
 DWORD WINAPI serveClient( LPVOID clSocket )
 {
    SOCKET clientSocket;
-   clientSocket = reinterpret_cast<SOCKET>(clSocket);
+   clientSocket = ( static_cast<SOCKET*>( clSocket ) )[0];
    char buff[bufferSize];
    send( clientSocket, serviceName, sizeof( serviceName ), 0 );
    int bytesRecv = 0;
