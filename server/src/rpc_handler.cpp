@@ -31,8 +31,8 @@ jsonrpcpp::response_ptr RequestHandler::copyfile( const jsonrpcpp::Id& id, const
    std::string pathSrc = params.get( 0 );
    std::string pathDest = params.get( 1 );
    std::error_code code;
-   fs::copy( pathSrc.c_str(), pathDest.c_str(), fs::copy_options::recursive,code );
-   return std::make_shared<jsonrpcpp::Response>( id, (bool)(code) );
+   fs::copy( pathSrc.c_str(), pathDest.c_str(), fs::copy_options::recursive | fs::copy_options::skip_existing, code );
+   return std::make_shared<jsonrpcpp::Response>( id, (bool)( code ) );
 }
 
 jsonrpcpp::response_ptr RequestHandler::sync( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
@@ -50,7 +50,7 @@ jsonrpcpp::response_ptr RequestHandler::sync( const jsonrpcpp::Id& id, const jso
          if( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
             fs::copy( ( pathSrc + "\\" + data.cFileName ).c_str(), ( pathDest + "\\" + data.cFileName ).c_str(), fs::copy_options::recursive | fs::copy_options::skip_existing );
          else
-         fs::copy( ( pathSrc + "\\" + data.cFileName ).c_str(), ( pathDest + "\\" + data.cFileName ).c_str(), fs::copy_options::skip_existing );
+            fs::copy( ( pathSrc + "\\" + data.cFileName ).c_str(), ( pathDest + "\\" + data.cFileName ).c_str(), fs::copy_options::skip_existing );
       }
       res = FindNextFileA( hfile, &data );
    }
@@ -64,7 +64,7 @@ jsonrpcpp::response_ptr RequestHandler::sync( const jsonrpcpp::Id& id, const jso
          if( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
             fs::copy( ( pathDest + "\\" + data.cFileName ).c_str(), ( pathSrc + "\\" + data.cFileName ).c_str(), fs::copy_options::recursive | fs::copy_options::skip_existing );
          else
-         fs::copy( ( pathDest + "\\" + data.cFileName ).c_str(), ( pathSrc + "\\" + data.cFileName ).c_str(), fs::copy_options::skip_existing );
+            fs::copy( ( pathDest + "\\" + data.cFileName ).c_str(), ( pathSrc + "\\" + data.cFileName ).c_str(), fs::copy_options::skip_existing );
       }
       res = FindNextFileA( hfile, &data );
    }

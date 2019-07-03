@@ -63,10 +63,10 @@ int socketInit( ULONG ip, USHORT port )
 }
 
 
-void serveClient( LPVOID clSocket )
+void serveClient( ULONG* clSocket )
 {
    SOCKET clientSocket;
-   clientSocket = ( static_cast<SOCKET*>( clSocket ) )[0];
+   clientSocket = ( clSocket )[0];
    char buff[bufferSize];
    send( clientSocket, serviceName, sizeof( serviceName ), 0 );
    int bytesRecv = 0;
