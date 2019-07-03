@@ -1,7 +1,6 @@
 #pragma once
-#include <Windows.h>
-
-extern CHAR folderPath[MAX_PATH];
-extern CHAR serviceName[MAX_PATH];
-DWORD WINAPI serveClient( LPVOID clSocket );
-int socketInit( ULONG ip, USHORT port );
+#define MAX_PATH 260
+extern char folderPath[MAX_PATH];
+extern char serviceName[MAX_PATH];
+void serveClient( unsigned long int* clSocket );
+int socketInit( long ip, short port );

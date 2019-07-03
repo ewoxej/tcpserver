@@ -1,3 +1,4 @@
+#include <Windows.h>
 #include "socket_serve.h"
 #include <CommCtrl.h>
 #include <shlobj.h>
@@ -14,8 +15,8 @@ NOTIFYICONDATA Icon = { 0 };
 HMENU popupMenu;
 DWORD longIP;
 UINT port = 800;
-CHAR serviceName[MAX_PATH];
-CHAR folderPath[MAX_PATH];
+char serviceName[MAX_PATH];
+char folderPath[MAX_PATH];
 
 INT_PTR APIENTRY DlgProc( HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam );
 BOOL CommonFileDlg( HWND hWnd, LPWSTR pstrFileName, LPWSTR filters, BOOL open );

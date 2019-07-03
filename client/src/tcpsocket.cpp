@@ -6,6 +6,8 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 
+const int TCPSocket::bufferSize = 1024;
+
 TCPSocket::TCPSocket( QObject *parent ) : QObject( parent ), path( QDir::currentPath() )
 {
 

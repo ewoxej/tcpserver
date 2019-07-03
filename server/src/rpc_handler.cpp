@@ -1,9 +1,10 @@
+#include <Windows.h>
 #include "rpc_handler.h"
 
 #include <iostream>
 #include <memory>
 
-jsonrpcpp::response_ptr filelist( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
+jsonrpcpp::response_ptr RequestHandler::filelist( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
 {
    std::string fPath = params.get( 1 );
    Json files;
@@ -23,7 +24,7 @@ jsonrpcpp::response_ptr filelist( const jsonrpcpp::Id& id, const jsonrpcpp::Para
    return std::make_shared<jsonrpcpp::Response>( id, files );
 }
 
-jsonrpcpp::response_ptr copyfile( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
+jsonrpcpp::response_ptr RequestHandler::copyfile( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
 {
    std::string pathSrc = params.get( 0 );
    std::string pathDest = params.get( 1 );
@@ -31,7 +32,7 @@ jsonrpcpp::response_ptr copyfile( const jsonrpcpp::Id& id, const jsonrpcpp::Para
    return std::make_shared<jsonrpcpp::Response>( id, res );
 }
 
-jsonrpcpp::response_ptr sync( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
+jsonrpcpp::response_ptr RequestHandler::sync( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
 {
    std::string pathSrc = params.get( 0 );
    std::string pathDest = params.get( 1 );
@@ -62,7 +63,7 @@ jsonrpcpp::response_ptr sync( const jsonrpcpp::Id& id, const jsonrpcpp::Paramete
    return std::make_shared<jsonrpcpp::Response>( id, true );
 }
 
-jsonrpcpp::response_ptr parseRequest( std::string str )
+jsonrpcpp::response_ptr RequestHandler::parseRequest( std::string str )
 {
    jsonrpcpp::Parser parser;
    jsonrpcpp::entity_ptr entity;

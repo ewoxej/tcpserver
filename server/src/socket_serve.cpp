@@ -1,4 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 #include "socket_serve.h"
 #include <string>
 #include <vector>
@@ -13,7 +14,7 @@
 std::vector<std::thread*> threads;
 const int bufferSize = 1024;
 
-int socketInit( ULONG ip, USHORT port )
+int socketInit( long ip, short port )
 {
    char buff[bufferSize];
    if( WSAStartup( 0x0202, reinterpret_cast<WSADATA*>( &buff[0] ) ) )
@@ -51,7 +52,7 @@ int socketInit( ULONG ip, USHORT port )
    int clientAdressSize = sizeof( clientAdress );
    while( clientSocket = accept( mainSocket, reinterpret_cast<sockaddr*>( &clientAdress ), &clientAdressSize ) )
    {
-      threads.push_back( new std::thread( serveClient, &clientSocket ) );
+      threads.push_back( new std::thread( serveClient, reinterpret_cast<unsigned long int*>( &clientSocket ) ) );
    }
    for( auto i : threads )
    {
@@ -62,10 +63,10 @@ int socketInit( ULONG ip, USHORT port )
 }
 
 
-DWORD WINAPI serveClient( LPVOID clSocket )
+void serveClient( unsigned long int* clSocket )
 {
    SOCKET clientSocket;
-   clientSocket = ( static_cast<SOCKET*>( clSocket ) )[0];
+   clientSocket = clSocket[0];
    char buff[bufferSize];
    send( clientSocket, serviceName, sizeof( serviceName ), 0 );
    int bytesRecv = 0;
@@ -76,7 +77,8 @@ DWORD WINAPI serveClient( LPVOID clSocket )
       {
          buff[bytesRecv] = 0;
       }
-      jsonrpcpp::response_ptr resp = parseRequest( buff );
+      RequestHandler handler;
+      jsonrpcpp::response_ptr resp = handler.parseRequest( buff );
       if( !resp )
       {
          send( clientSocket, "Incorrect request", std::string( "Incorrect request" ).length(), 0 );
@@ -89,5 +91,4 @@ DWORD WINAPI serveClient( LPVOID clSocket )
    }
 
    closesocket( clientSocket );
-   return 0;
 }
