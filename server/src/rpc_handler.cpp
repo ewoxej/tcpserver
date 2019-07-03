@@ -44,6 +44,7 @@ jsonrpcpp::response_ptr RequestHandler::sync( const jsonrpcpp::Id& id, const jso
 
    HANDLE hfile = FindFirstFileA( ( std::string( pathSrc ) + "\\*.*" ).c_str(), &data );
    bool res = true;
+   if( !fs::exists( pathSrc ) || !( fs::exists( pathDest ) ) )    return std::make_shared<jsonrpcpp::Response>( id, false );
    while( res )
    {
       if( strcmp( data.cFileName, "." ) != 0 && strcmp( data.cFileName, ".." ) != 0 )
