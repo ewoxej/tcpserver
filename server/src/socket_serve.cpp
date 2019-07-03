@@ -14,7 +14,7 @@
 std::vector<std::thread*> threads;
 const int bufferSize = 1024;
 
-int socketInit( long ip, short port )
+int socketInit( ULONG ip, USHORT port )
 {
    char buff[bufferSize];
    if( WSAStartup( 0x0202, reinterpret_cast<WSADATA*>( &buff[0] ) ) )
@@ -63,10 +63,10 @@ int socketInit( long ip, short port )
 }
 
 
-void serveClient( unsigned long int* clSocket )
+DWORD WINAPI serveClient( LPVOID clSocket )
 {
    SOCKET clientSocket;
-   clientSocket = clSocket[0];
+   clientSocket = reinterpret_cast<SOCKET>(clSocket);
    char buff[bufferSize];
    send( clientSocket, serviceName, sizeof( serviceName ), 0 );
    int bytesRecv = 0;
