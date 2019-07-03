@@ -1,8 +1,12 @@
+#include <Windows.h>
 #include "rpc_handler.h"
 
-jsonrpcpp::response_ptr filelist( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
+#include <iostream>
+#include <memory>
+
+jsonrpcpp::response_ptr RequestHandler::filelist( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
 {
-   std::string fPath = params.get( 0 );
+   std::string fPath = params.get( 1 );
    Json files;
    WIN32_FIND_DATAA data;
 
@@ -11,49 +15,55 @@ jsonrpcpp::response_ptr filelist( const jsonrpcpp::Id& id, const jsonrpcpp::Para
    while( res )
    {
       if( strcmp( data.cFileName, "." ) != 0 && strcmp( data.cFileName, ".." ) != 0 )
+      {
          files.push_back( data.cFileName );
+      }
       res = FindNextFileA( hfile, &data );
    }
    FindClose( hfile );
    return std::make_shared<jsonrpcpp::Response>( id, files );
 }
 
-jsonrpcpp::response_ptr copyfile( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
+jsonrpcpp::response_ptr RequestHandler::copyfile( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
 {
-   std::string path_src = params.get( 0 );
-   std::string path_dest = params.get( 1 );
-   bool res = CopyFileA( path_src.c_str(), path_dest.c_str(), TRUE );
+   std::string pathSrc = params.get( 0 );
+   std::string pathDest = params.get( 1 );
+   bool res = CopyFileA( pathSrc.c_str(), pathDest.c_str(), TRUE );
    return std::make_shared<jsonrpcpp::Response>( id, res );
 }
 
-jsonrpcpp::response_ptr sync( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
+jsonrpcpp::response_ptr RequestHandler::sync( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
 {
-   std::string path_src = params.get( 0 );
-   std::string path_dest = params.get( 1 );
+   std::string pathSrc = params.get( 0 );
+   std::string pathDest = params.get( 1 );
    WIN32_FIND_DATAA data;
 
-   HANDLE hfile = FindFirstFileA( ( std::string( path_src ) + "\\*.*" ).c_str(), &data );
+   HANDLE hfile = FindFirstFileA( ( std::string( pathSrc ) + "\\*.*" ).c_str(), &data );
    bool res = true;
    while( res )
    {
       if( strcmp( data.cFileName, "." ) != 0 && strcmp( data.cFileName, ".." ) != 0 )
-         CopyFileA( ( path_src + "\\" + data.cFileName ).c_str(), ( path_dest + "\\" + data.cFileName ).c_str(), TRUE );
+      {
+         CopyFileA( ( pathSrc + "\\" + data.cFileName ).c_str(), ( pathDest + "\\" + data.cFileName ).c_str(), TRUE );
+      }
       res = FindNextFileA( hfile, &data );
    }
    FindClose( hfile );
-   hfile = FindFirstFileA( ( std::string( path_dest ) + "\\*.*" ).c_str(), &data );
+   hfile = FindFirstFileA( ( std::string( pathDest ) + "\\*.*" ).c_str(), &data );
    res = true;
    while( res )
    {
       if( strcmp( data.cFileName, "." ) != 0 && strcmp( data.cFileName, ".." ) != 0 )
-         CopyFileA( ( path_dest + "\\" + data.cFileName ).c_str(), ( path_src + "\\" + data.cFileName ).c_str(), TRUE );
+      {
+         CopyFileA( ( pathDest + "\\" + data.cFileName ).c_str(), ( pathSrc + "\\" + data.cFileName ).c_str(), TRUE );
+      }
       res = FindNextFileA( hfile, &data );
    }
    FindClose( hfile );
    return std::make_shared<jsonrpcpp::Response>( id, true );
 }
 
-jsonrpcpp::response_ptr parseRequest( std::string str )
+jsonrpcpp::response_ptr RequestHandler::parseRequest( std::string str )
 {
    jsonrpcpp::Parser parser;
    jsonrpcpp::entity_ptr entity;
@@ -61,7 +71,7 @@ jsonrpcpp::response_ptr parseRequest( std::string str )
    {
       entity = parser.parse( str );
    }
-   catch( ... )
+   catch( jsonrpcpp::ParseErrorException )
    {
       return nullptr;
    }
@@ -73,14 +83,16 @@ jsonrpcpp::response_ptr parseRequest( std::string str )
          request->params.param_array.push_back( folderPath );
          return std::dynamic_pointer_cast<jsonrpcpp::Response>( filelist( 0, request->params ) );
       }
-      else if( request->method == "upload" )
+      else if( request->method == "download" || request->method == "upload" )
       {
-         request->params.param_array.push_back( folderPath );
-         return std::dynamic_pointer_cast<jsonrpcpp::Response>( copyfile( 0, request->params ) );
-      }
-      else if( request->method == "download" )
-      {
-         request->params.param_array.insert( request->params.param_array.begin(), folderPath );
+         std::string srcpath = request->params.get( 0 );
+         std::string filename = request->params.get( 1 );
+         request->params.param_array.clear();
+         if( request->method == "download" )
+            request->params.param_array.push_back( std::string( folderPath ) + "\\" + filename );
+         request->params.param_array.push_back( srcpath + "\\" + filename );
+         if( request->method == "upload" )
+            request->params.param_array.push_back( std::string( folderPath ) + "\\" + filename );
          return std::dynamic_pointer_cast<jsonrpcpp::Response>( copyfile( 0, request->params ) );
       }
       else if( request->method == "sync" )
@@ -90,7 +102,9 @@ jsonrpcpp::response_ptr parseRequest( std::string str )
          return std::dynamic_pointer_cast<jsonrpcpp::Response>( sync( 0, request->params ) );
       }
       else
-         throw jsonrpcpp::MethodNotFoundException( *request );
+      {
+         return nullptr;
+      }
    }
    return nullptr;
 }

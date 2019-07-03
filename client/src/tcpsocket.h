@@ -1,15 +1,7 @@
 #ifndef TCPSOCKET_H
 #define TCPSOCKET_H
-#include <QDebug>
 #include <QObject>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QTcpSocket>
-#include <QDir>
-#include <iostream>
-
-const int bufferSize = 1024;
+class QTcpSocket;
 class TCPSocket : public QObject
 {
    Q_OBJECT
@@ -22,6 +14,7 @@ signals:
 public slots:
    void readTcpData();
 private:
+   static const int bufferSize;
    QTcpSocket* socket;
    QString path;
 };

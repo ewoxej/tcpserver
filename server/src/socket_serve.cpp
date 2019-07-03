@@ -1,4 +1,10 @@
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 #include "socket_serve.h"
+#include <string>
+#include <vector>
+#include <winsock2.h>
+#pragma comment(lib,"ws2_32.lib")
 #include <tchar.h>
 #include <vector>
 #include <memory>
@@ -8,74 +14,81 @@
 std::vector<std::thread*> threads;
 const int bufferSize = 1024;
 
-int SocketInit( ULONG ip, USHORT port )
+int socketInit( long ip, short port )
 {
    char buff[bufferSize];
-   if( WSAStartup( 0x0202, (WSADATA *)&buff[0] ) )
+   if( WSAStartup( 0x0202, reinterpret_cast<WSADATA*>( &buff[0] ) ) )
+   {
       return -1;
-
-   SOCKET mysocket;
-   if( ( mysocket = socket( AF_INET, SOCK_STREAM, 0 ) ) < 0 )
+   }
+   SOCKET mainSocket;
+   if( ( mainSocket = socket( AF_INET, SOCK_STREAM, 0 ) ) < 0 )
    {
       WSACleanup();
       return -1;
    }
 
-   sockaddr_in local_addr;
-   local_addr.sin_family = AF_INET;
-   local_addr.sin_port = htons( port );
-   local_addr.sin_addr.s_addr = htonl( ip );
+   sockaddr_in localAdress;
+   localAdress.sin_family = AF_INET;
+   localAdress.sin_port = htons( port );
+   localAdress.sin_addr.s_addr = htonl( ip );
 
-   if( bind( mysocket, (sockaddr *)&local_addr,
-      sizeof( local_addr ) ) )
+   if( bind( mainSocket, reinterpret_cast<sockaddr*>( &localAdress ),
+      sizeof( localAdress ) ) )
    {
-      closesocket( mysocket );
+      closesocket( mainSocket );
       WSACleanup();
       return -1;
    }
 
-   if( listen( mysocket, 0x100 ) )
+   if( listen( mainSocket, 0x100 ) )
    {
-      closesocket( mysocket );
+      closesocket( mainSocket );
       WSACleanup();
       return -1;
    }
-   SOCKET client_socket;
-   sockaddr_in client_addr;
-   int client_addr_size = sizeof( client_addr );
-   while( ( client_socket = accept( mysocket, (sockaddr *)
-      &client_addr, &client_addr_size ) ) )
+   SOCKET clientSocket;
+   sockaddr_in clientAdress;
+   int clientAdressSize = sizeof( clientAdress );
+   while( clientSocket = accept( mainSocket, reinterpret_cast<sockaddr*>( &clientAdress ), &clientAdressSize ) )
    {
-      threads.push_back( new std::thread( ServeClient, &client_socket ) );
+      threads.push_back( new std::thread( serveClient, reinterpret_cast<unsigned long int*>( &clientSocket ) ) );
    }
    for( auto i : threads )
+   {
       i->join();
+   }
    return 0;
 
 }
 
 
-DWORD WINAPI ServeClient( LPVOID client_socket )
+void serveClient( unsigned long int* clSocket )
 {
-   SOCKET my_sock;
-   my_sock = ( (SOCKET *)client_socket )[0];
+   SOCKET clientSocket;
+   clientSocket = clSocket[0];
    char buff[bufferSize];
-   send( my_sock, serviceName, sizeof( serviceName ), 0 );
-   int bytes_recv = 0;
-   while( bytes_recv != SOCKET_ERROR )
+   send( clientSocket, serviceName, sizeof( serviceName ), 0 );
+   int bytesRecv = 0;
+   while( bytesRecv != SOCKET_ERROR )
    {
-      bytes_recv = recv( my_sock, &buff[0], sizeof( buff ), 0 );
-      if( bytes_recv > 0 )
-         buff[bytes_recv] = 0;
-      jsonrpcpp::response_ptr resp = parseRequest( buff );
-      if( !resp ) send( my_sock, "Incorrect request", std::string( "Incorrect request" ).length(), 0 );
+      bytesRecv = recv( clientSocket, &buff[0], sizeof( buff ), 0 );
+      if( bytesRecv > 0 )
+      {
+         buff[bytesRecv] = 0;
+      }
+      RequestHandler handler;
+      jsonrpcpp::response_ptr resp = handler.parseRequest( buff );
+      if( !resp )
+      {
+         send( clientSocket, "Incorrect request", std::string( "Incorrect request" ).length(), 0 );
+      }
       else
       {
          std::string strRes = resp->result.dump();
-         send( my_sock, strRes.c_str(), strRes.length(), 0 );
+         send( clientSocket, strRes.c_str(), strRes.length(), 0 );
       }
    }
 
-   closesocket( my_sock );
-   return 0;
+   closesocket( clientSocket );
 }

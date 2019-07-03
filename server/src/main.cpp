@@ -1,3 +1,4 @@
+#include <Windows.h>
 #include "socket_serve.h"
 #include <CommCtrl.h>
 #include <shlobj.h>
@@ -14,8 +15,8 @@ NOTIFYICONDATA Icon = { 0 };
 HMENU popupMenu;
 DWORD longIP;
 UINT port = 800;
-CHAR serviceName[MAX_PATH];
-CHAR folderPath[MAX_PATH];
+char serviceName[MAX_PATH];
+char folderPath[MAX_PATH];
 
 INT_PTR APIENTRY DlgProc( HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam );
 BOOL CommonFileDlg( HWND hWnd, LPWSTR pstrFileName, LPWSTR filters, BOOL open );
@@ -26,7 +27,7 @@ LRESULT CALLBACK WndProc( HWND window, UINT message, WPARAM wParam, LPARAM lPara
    {
    case WM_COMMAND:
    {
-      switch( (UINT)LOWORD( wParam ) )
+      switch( static_cast<UINT>( LOWORD( wParam ) ) )
       {
       case IDB_SETTING:
       {
@@ -35,7 +36,7 @@ LRESULT CALLBACK WndProc( HWND window, UINT message, WPARAM wParam, LPARAM lPara
       break;
       case IDB_HELP:
       {
-         MessageBox( window, L"Это сервер для обмена файлами. Чтобы запустить, для начала настройте его", L"Help", MB_OK );
+         MessageBox( window, L"This is a file sharing server. Configure it before running", L"Help", MB_OK );
       }
       break;
       case IDB_EXIT:
@@ -53,7 +54,9 @@ LRESULT CALLBACK WndProc( HWND window, UINT message, WPARAM wParam, LPARAM lPara
       POINT pt;
       GetCursorPos( &pt );
       if( lParam == WM_RBUTTONDOWN )
-         TrackPopupMenu( popupMenu, TPM_LEFTALIGN, pt.x, pt.y, 0, window, NULL );
+      {
+         TrackPopupMenu( popupMenu, TPM_LEFTALIGN, pt.x, pt.y, 0, window, nullptr );
+      }
    }
    break;
 
@@ -69,7 +72,7 @@ LRESULT CALLBACK WndProc( HWND window, UINT message, WPARAM wParam, LPARAM lPara
    return 0;
 }
 
-int APIENTRY _tWinMain( HINSTANCE instance, HINSTANCE, LPTSTR, int )
+int APIENTRY _tWinMain( HINSTANCE instance, HINSTANCE prevInstance, LPTSTR cmdLine, int showCmd )
 {
    hInst = instance;
    WNDCLASSEX main = { 0 };
@@ -79,17 +82,17 @@ int APIENTRY _tWinMain( HINSTANCE instance, HINSTANCE, LPTSTR, int )
    main.lpfnWndProc = WndProc;
    RegisterClassEx( &main );
    GetCurrentDirectoryA( MAX_PATH, folderPath );
-   HWND window = CreateWindowEx( 0, TEXT( "Main" ), NULL, 0, 0, 0, 0, 0, NULL, NULL, instance, NULL );
+   HWND window = CreateWindowEx( 0, TEXT( "Main" ), nullptr, 0, 0, 0, 0, 0, nullptr, nullptr, instance, nullptr );
 
    Icon.cbSize = sizeof( NOTIFYICONDATA );
    Icon.hWnd = window;
    Icon.uVersion = NOTIFYICON_VERSION;
    Icon.uCallbackMessage = WM_USER;
-   Icon.hIcon = LoadIcon( NULL, IDI_WINLOGO );
+   Icon.hIcon = LoadIcon( nullptr, IDI_WINLOGO );
    Icon.uFlags = NIF_MESSAGE | NIF_ICON;
    Shell_NotifyIcon( NIM_ADD, &Icon );
    popupMenu = CreatePopupMenu();
-   longIP = 2130706433;//127.0.0.1 in long format
+   longIP = MAKEIPADDRESS( 127, 0, 0, 1 );
    TCHAR strhelp[] = L"Help";
    TCHAR strset[] = L"Setting";
    TCHAR strexit[] = L"Exit";
@@ -97,7 +100,7 @@ int APIENTRY _tWinMain( HINSTANCE instance, HINSTANCE, LPTSTR, int )
    AppendMenu( popupMenu, MF_STRING | MF_MOUSESELECT, IDB_HELP, strhelp );
    AppendMenu( popupMenu, MF_STRING | MF_MOUSESELECT, IDB_EXIT, strexit );
    MSG message;
-   while( GetMessage( &message, NULL, 0, 0 ) )
+   while( GetMessage( &message, nullptr, 0, 0 ) )
    {
       TranslateMessage( &message );
       DispatchMessage( &message );
@@ -119,9 +122,9 @@ INT_PTR APIENTRY DlgProc( HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPar
       LONG style = GetWindowLong( GetDlgItem( hwndDlg, IDC_EDIT3 ), GWL_STYLE );
       SetWindowLongPtr( GetDlgItem( hwndDlg, IDC_EDIT3 ), GWL_STYLE, style | ES_NUMBER );
       SendMessage( GetDlgItem( hwndDlg, IDC_EDIT3 ), EM_SETLIMITTEXT, 4, 0 );
-      SendMessage( GetDlgItem( hwndDlg, IDC_EDIT3 ), WM_SETTEXT, 0, (LPARAM)L"800" );
-      SendMessage( GetDlgItem( hwndDlg, IDC_IPADDRESS1 ), IPM_SETADDRESS, 0, (LPARAM)longIP );
-      SendMessageA( GetDlgItem( hwndDlg, IDC_EDIT2 ), WM_SETTEXT, 0, (LPARAM)serviceName );
+      SendMessage( GetDlgItem( hwndDlg, IDC_EDIT3 ), WM_SETTEXT, 0, reinterpret_cast<LPARAM>( L"800" ) );
+      SendMessage( GetDlgItem( hwndDlg, IDC_IPADDRESS1 ), IPM_SETADDRESS, 0, static_cast<LPARAM>( longIP ) );
+      SendMessageA( GetDlgItem( hwndDlg, IDC_EDIT2 ), WM_SETTEXT, 0, reinterpret_cast<LPARAM>( serviceName ) );
       SetWindowTextA( GetDlgItem( hwndDlg, IDC_EDIT1 ), folderPath );
       return true;
    }
@@ -132,13 +135,13 @@ INT_PTR APIENTRY DlgProc( HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPar
       {
          TCHAR current[MAX_PATH];
          BROWSEINFO bis;
-         bis.hwndOwner = NULL;
-         bis.pidlRoot = NULL;
+         bis.hwndOwner = nullptr;
+         bis.pidlRoot = nullptr;
          bis.pszDisplayName = buffer;
          bis.lpszTitle = L"HERE";
          bis.ulFlags = BIF_NEWDIALOGSTYLE | BIF_RETURNONLYFSDIRS;
-         bis.lpfn = NULL;
-         bis.lParam = (LPARAM)current;
+         bis.lpfn = nullptr;
+         bis.lParam = reinterpret_cast<LPARAM>( current );
          LPITEMIDLIST lst = SHBrowseForFolder( &bis );
          SHGetPathFromIDListA( lst, folderPath );
          SetWindowTextA( GetDlgItem( hwndDlg, IDC_EDIT1 ), folderPath );
@@ -146,14 +149,15 @@ INT_PTR APIENTRY DlgProc( HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPar
       break;
       case IDOK:
       {
-         char cport[5];
+         const int portArraySize = 5;
+         char cport[portArraySize];
          SendMessage( GetDlgItem( hwndDlg, IDC_IPADDRESS1 ), IPM_GETADDRESS, 0, LPARAM( &longIP ) );
          GetWindowTextA( GetDlgItem( hwndDlg, IDC_EDIT2 ), serviceName, MAX_PATH );
-         GetWindowTextA( GetDlgItem( hwndDlg, IDC_EDIT3 ), cport, 5 );
+         GetWindowTextA( GetDlgItem( hwndDlg, IDC_EDIT3 ), cport, portArraySize );
          port = std::stoi( cport );
-         serverTh = std::thread( SocketInit, longIP, port );
+         serverTh = std::thread( socketInit, longIP, port );
          serverTh.detach();
-         SocketInit( longIP, port );
+         socketInit( longIP, port );
       }
 
       case IDCANCEL:
@@ -176,7 +180,7 @@ BOOL CommonFileDlg( HWND hWnd, LPWSTR pstrFileName, LPWSTR filters, BOOL open )
    ofn.nMaxFile = MAX_PATH;
    ofn.nFilterIndex = 1;
    ofn.lpstrFilter = filters;
-   ofn.lpstrFileTitle = NULL;
+   ofn.lpstrFileTitle = nullptr;
    ofn.Flags = !OFN_FILEMUSTEXIST;
    if( ( open ) ? GetOpenFileName( &ofn ) : GetSaveFileName( &ofn ) )
    {

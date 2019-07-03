@@ -7,9 +7,10 @@ int main( int argc, char* argv[] )
    quint16 port;
    if( argc < 3 )
    {
-      std::cout << "Command line arguments should be next: ip port path";
+      std::cout << "Command line arguments should be next: ip port path" << std::endl;
       return -1;
    }
+   std::cout << "Enter \"sync\" to synchronize client folder with server folder. Enter \"filelist\" to enumerate files in server folder" << std::endl;
    serveraddr = argv[1];
    port = std::stoi( argv[2] );
    TCPSocket socket;
