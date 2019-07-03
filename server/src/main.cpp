@@ -1,3 +1,4 @@
+#define _WINSOCK2API_
 #include <Windows.h>
 #include "socket_serve.h"
 #include <CommCtrl.h>

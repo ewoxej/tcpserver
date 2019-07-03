@@ -1,3 +1,4 @@
+#define _WINSOCK2API_
 #include <Windows.h>
 #include "rpc_handler.h"
 #include <experimental/filesystem>

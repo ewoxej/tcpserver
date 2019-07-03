@@ -1,9 +1,7 @@
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
 #include "socket_serve.h"
 #include <string>
 #include <vector>
-#include <winsock2.h>
+#include <Windows.h>
 #pragma comment(lib,"ws2_32.lib")
 #include <tchar.h>
 #include <vector>
@@ -13,7 +11,7 @@
 
 std::vector<std::thread*> threads;
 const int bufferSize = 1024;
-
+const int indent = 3;
 int socketInit( ULONG ip, USHORT port )
 {
    char buff[bufferSize];
@@ -52,7 +50,8 @@ int socketInit( ULONG ip, USHORT port )
    int clientAdressSize = sizeof( clientAdress );
    while( clientSocket = accept( mainSocket, reinterpret_cast<sockaddr*>( &clientAdress ), &clientAdressSize ) )
    {
-      threads.push_back( new std::thread( serveClient, reinterpret_cast<unsigned long int*>( &clientSocket ) ) );
+      //serveClient( &clientSocket );
+      threads.push_back( new std::thread( serveClient, clientSocket ) );
    }
    for( auto i : threads )
    {
@@ -63,10 +62,10 @@ int socketInit( ULONG ip, USHORT port )
 }
 
 
-void serveClient( ULONG* clSocket )
+void serveClient( SOCKET clSocket )
 {
    SOCKET clientSocket;
-   clientSocket = ( clSocket )[0];
+   clientSocket = clSocket;
    char buff[bufferSize];
    send( clientSocket, serviceName, sizeof( serviceName ), 0 );
    int bytesRecv = 0;
@@ -85,7 +84,7 @@ void serveClient( ULONG* clSocket )
       }
       else
       {
-         std::string strRes = resp->result.dump( 3 );
+         std::string strRes = resp->result.dump( indent );
          send( clientSocket, strRes.c_str(), strRes.length(), 0 );
       }
    }
