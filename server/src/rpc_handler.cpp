@@ -1,8 +1,10 @@
 #include <Windows.h>
 #include "rpc_handler.h"
-
+#include <experimental/filesystem>
 #include <iostream>
 #include <memory>
+
+namespace fs = std::experimental::filesystem;
 
 jsonrpcpp::response_ptr RequestHandler::filelist( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
 {
@@ -28,8 +30,9 @@ jsonrpcpp::response_ptr RequestHandler::copyfile( const jsonrpcpp::Id& id, const
 {
    std::string pathSrc = params.get( 0 );
    std::string pathDest = params.get( 1 );
-   bool res = CopyFileA( pathSrc.c_str(), pathDest.c_str(), TRUE );
-   return std::make_shared<jsonrpcpp::Response>( id, res );
+   std::error_code code;
+   fs::copy( pathSrc.c_str(), pathDest.c_str(), fs::copy_options::recursive,code );
+   return std::make_shared<jsonrpcpp::Response>( id, (bool)(code) );
 }
 
 jsonrpcpp::response_ptr RequestHandler::sync( const jsonrpcpp::Id& id, const jsonrpcpp::Parameter& params )
@@ -44,7 +47,10 @@ jsonrpcpp::response_ptr RequestHandler::sync( const jsonrpcpp::Id& id, const jso
    {
       if( strcmp( data.cFileName, "." ) != 0 && strcmp( data.cFileName, ".." ) != 0 )
       {
-         CopyFileA( ( pathSrc + "\\" + data.cFileName ).c_str(), ( pathDest + "\\" + data.cFileName ).c_str(), TRUE );
+         if( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
+            fs::copy( ( pathSrc + "\\" + data.cFileName ).c_str(), ( pathDest + "\\" + data.cFileName ).c_str(), fs::copy_options::recursive | fs::copy_options::skip_existing );
+         else
+         fs::copy( ( pathSrc + "\\" + data.cFileName ).c_str(), ( pathDest + "\\" + data.cFileName ).c_str(), fs::copy_options::skip_existing );
       }
       res = FindNextFileA( hfile, &data );
    }
@@ -55,7 +61,10 @@ jsonrpcpp::response_ptr RequestHandler::sync( const jsonrpcpp::Id& id, const jso
    {
       if( strcmp( data.cFileName, "." ) != 0 && strcmp( data.cFileName, ".." ) != 0 )
       {
-         CopyFileA( ( pathDest + "\\" + data.cFileName ).c_str(), ( pathSrc + "\\" + data.cFileName ).c_str(), TRUE );
+         if( data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
+            fs::copy( ( pathDest + "\\" + data.cFileName ).c_str(), ( pathSrc + "\\" + data.cFileName ).c_str(), fs::copy_options::recursive | fs::copy_options::skip_existing );
+         else
+         fs::copy( ( pathDest + "\\" + data.cFileName ).c_str(), ( pathSrc + "\\" + data.cFileName ).c_str(), fs::copy_options::skip_existing );
       }
       res = FindNextFileA( hfile, &data );
    }

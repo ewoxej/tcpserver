@@ -63,7 +63,7 @@ int socketInit( ULONG ip, USHORT port )
 }
 
 
-DWORD WINAPI serveClient( LPVOID clSocket )
+void serveClient( LPVOID clSocket )
 {
    SOCKET clientSocket;
    clientSocket = ( static_cast<SOCKET*>( clSocket ) )[0];
@@ -85,7 +85,7 @@ DWORD WINAPI serveClient( LPVOID clSocket )
       }
       else
       {
-         std::string strRes = resp->result.dump();
+         std::string strRes = resp->result.dump( 3 );
          send( clientSocket, strRes.c_str(), strRes.length(), 0 );
       }
    }

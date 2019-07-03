@@ -54,7 +54,7 @@ void TCPClient::readTcpData()
       jsonreq["params"] = jarray;
       jsonreq["id"] = 0;
       QJsonDocument doc( jsonreq );
-      strBuff = doc.toJson( QJsonDocument::Compact ).toStdString();
+      strBuff = doc.toJson().toStdString();
       std::cout << strBuff << std::endl;
       m_socket->write( strBuff.c_str(), strBuff.length() );
       m_socket->waitForReadyRead();

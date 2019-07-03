@@ -3,5 +3,5 @@
 
 extern CHAR folderPath[MAX_PATH];
 extern CHAR serviceName[MAX_PATH];
-DWORD WINAPI serveClient( LPVOID clSocket );
+void serveClient( LPVOID clSocket );
 int socketInit( ULONG ip, USHORT port );
