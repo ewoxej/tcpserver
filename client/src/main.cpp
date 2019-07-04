@@ -1,5 +1,5 @@
 #include <iostream>
-#include "tcpsocket.h"
+#include "tcpclient.h"
 
 int main( int argc, char* argv[] )
 {
@@ -13,7 +13,7 @@ int main( int argc, char* argv[] )
    std::cout << "Enter \"sync\" to synchronize client folder with server folder. Enter \"filelist\" to enumerate files in server folder" << std::endl;
    serveraddr = argv[1];
    port = std::stoi( argv[2] );
-   TCPSocket socket;
+   TCPClient socket;
    if( argc == 4 )
       socket.setPath( argv[3] );
    socket.connectTcp( serveraddr, port );

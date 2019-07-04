@@ -1,3 +1,4 @@
+#define _WINSOCK2API_
 #include <Windows.h>
 #include "socket_serve.h"
 #include <CommCtrl.h>
@@ -122,7 +123,7 @@ INT_PTR APIENTRY DlgProc( HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPar
       LONG style = GetWindowLong( GetDlgItem( hwndDlg, IDC_EDIT3 ), GWL_STYLE );
       SetWindowLongPtr( GetDlgItem( hwndDlg, IDC_EDIT3 ), GWL_STYLE, style | ES_NUMBER );
       SendMessage( GetDlgItem( hwndDlg, IDC_EDIT3 ), EM_SETLIMITTEXT, 4, 0 );
-      SendMessage( GetDlgItem( hwndDlg, IDC_EDIT3 ), WM_SETTEXT, 0, reinterpret_cast<LPARAM>( L"800" ) );
+      SendMessage( GetDlgItem( hwndDlg, IDC_EDIT3 ), WM_SETTEXT, 0, reinterpret_cast<LPARAM>( std::to_wstring( port ).c_str() ) );
       SendMessage( GetDlgItem( hwndDlg, IDC_IPADDRESS1 ), IPM_SETADDRESS, 0, static_cast<LPARAM>( longIP ) );
       SendMessageA( GetDlgItem( hwndDlg, IDC_EDIT2 ), WM_SETTEXT, 0, reinterpret_cast<LPARAM>( serviceName ) );
       SetWindowTextA( GetDlgItem( hwndDlg, IDC_EDIT1 ), folderPath );

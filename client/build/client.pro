@@ -5,7 +5,7 @@ QT += network
 
 SOURCES += \
         ../src/main.cpp \
-        ../src/tcpsocket.cpp
+        ../src/tcpclient.cpp
 
 HEADERS += \
-    ../src/tcpsocket.h
+    ../src/tcpclient.h
