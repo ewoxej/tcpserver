@@ -10,6 +10,7 @@
 #include "rpc_handler.h"
 
 std::vector<std::thread*> threads;
+SOCKET activeSocket;
 const int bufferSize = 1024;
 const int indent = 3;
 int socketInit( ULONG ip, USHORT port )
@@ -48,7 +49,8 @@ int socketInit( ULONG ip, USHORT port )
    SOCKET clientSocket;
    sockaddr_in clientAdress;
    int clientAdressSize = sizeof( clientAdress );
-   while( clientSocket = accept( mainSocket, reinterpret_cast<sockaddr*>( &clientAdress ), &clientAdressSize ) )
+   activeSocket = mainSocket;
+   while( clientSocket = accept( mainSocket, reinterpret_cast<sockaddr*>( &clientAdress ), &clientAdressSize ) && isWorking )
    {
       //serveClient( &clientSocket );
       threads.push_back( new std::thread( serveClient, clientSocket ) );

@@ -18,6 +18,8 @@ DWORD longIP;
 UINT port = 800;
 char serviceName[MAX_PATH];
 char folderPath[MAX_PATH];
+std::thread serverTh;
+bool isWorking = true;
 
 INT_PTR APIENTRY DlgProc( HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam );
 BOOL CommonFileDlg( HWND hWnd, LPWSTR pstrFileName, LPWSTR filters, BOOL open );
@@ -43,6 +45,11 @@ LRESULT CALLBACK WndProc( HWND window, UINT message, WPARAM wParam, LPARAM lPara
       case IDB_EXIT:
       {
          Shell_NotifyIcon( NIM_DELETE, &Icon );
+         shutdown( activeSocket, 2 );
+         closesocket( activeSocket );
+         isWorking = false;
+         if( serverTh.joinable() )
+            serverTh.join();
          WSACleanup();
          PostQuitMessage( 0 );
       }
@@ -112,7 +119,6 @@ int APIENTRY _tWinMain( HINSTANCE instance, HINSTANCE prevInstance, LPTSTR cmdLi
 
 INT_PTR APIENTRY DlgProc( HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam )
 {
-   static std::thread serverTh;
    TCHAR buffer[MAX_PATH];
    switch( message )
    {
@@ -156,9 +162,13 @@ INT_PTR APIENTRY DlgProc( HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPar
          GetWindowTextA( GetDlgItem( hwndDlg, IDC_EDIT2 ), serviceName, MAX_PATH );
          GetWindowTextA( GetDlgItem( hwndDlg, IDC_EDIT3 ), cport, portArraySize );
          port = std::stoi( cport );
+         shutdown( activeSocket, 2 );
+         closesocket( activeSocket );
+         isWorking = false;
+         if( serverTh.joinable() )
+            serverTh.join();
+         isWorking = true;
          serverTh = std::thread( socketInit, longIP, port );
-         serverTh.detach();
-         socketInit( longIP, port );
       }
 
       case IDCANCEL:

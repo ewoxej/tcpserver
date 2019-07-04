@@ -4,5 +4,7 @@
 
 extern CHAR folderPath[MAX_PATH];
 extern CHAR serviceName[MAX_PATH];
+extern SOCKET activeSocket;
+extern bool isWorking;
 void serveClient( SOCKET clSocket );
 int socketInit( ULONG ip, USHORT port );
