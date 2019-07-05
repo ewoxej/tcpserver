@@ -50,8 +50,9 @@ int socketInit( ULONG ip, USHORT port )
    sockaddr_in clientAdress;
    int clientAdressSize = sizeof( clientAdress );
    activeSocket = mainSocket;
-   while( clientSocket = accept( mainSocket, reinterpret_cast<sockaddr*>( &clientAdress ), &clientAdressSize ) && isWorking )
+   while( clientSocket = accept( mainSocket, reinterpret_cast<sockaddr*>( &clientAdress ), &clientAdressSize ) )
    {
+      if( !isWorking ) break;
       //serveClient( &clientSocket );
       threads.push_back( new std::thread( serveClient, clientSocket ) );
    }
@@ -73,16 +74,17 @@ void serveClient( SOCKET clSocket )
    int bytesRecv = 0;
    while( bytesRecv != SOCKET_ERROR )
    {
+      buff[0] = 0;
       bytesRecv = recv( clientSocket, &buff[0], sizeof( buff ), 0 );
       if( bytesRecv > 0 )
       {
          buff[bytesRecv] = 0;
       }
       RequestHandler handler;
-      jsonrpcpp::response_ptr resp = handler.parseRequest( buff );
+      jsonrpcpp::response_ptr resp = handler.parseRequest( buff, clSocket );
       if( !resp )
       {
-         send( clientSocket, "Incorrect request", std::string( "Incorrect request" ).length(), 0 );
+         send( clientSocket, buff, strlen(buff), 0 );
       }
       else
       {
