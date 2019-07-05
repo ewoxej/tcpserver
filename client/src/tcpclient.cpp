@@ -4,9 +4,7 @@
 #include <QTcpSocket>
 #include <iostream>
 #include <string>
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QJsonArray>
+
 
 const int TCPClient::bufferSize = 1024;
 
@@ -32,41 +30,44 @@ void TCPClient::setPath( QString newPath )
 void TCPClient::readTcpData()
 {
    QTextStream cin(stdin);
-   char buff[bufferSize];
-   int recvBytes;
+   QString barray;
    while( m_socket->isOpen() )
    {
-      strcpy_s(buff,"false");
-      recvBytes = m_socket->read( buff, bufferSize );
-      if(recvBytes > 0)
-      buff[recvBytes] = 0;
-      //terminate C-string
-      QString strBuff( buff );
-      std::cout<<strBuff.toStdString()<<std::endl;
-      strBuff = cin.readLine();
-      QJsonObject jsonreq;
-      QStringList list = strBuff.split(QRegExp("\\s+"), QString::SkipEmptyParts);
-      jsonreq["jsonrpc"] = "2.0";
-      if(list[0] == "download")
-         jsonreq["method"] = "exist";
+      barray = "false";
+      barray = m_socket->readAll();
+      std::cout<<barray.toStdString()<<std::endl;
+      barray = cin.readLine();
+      QStringList list = barray.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+      if(list[0]=="download" && list.size()>1)
+      barray = makeRpcCallString("exist",list[1]);
+      else if(list.size()>1)
+      barray = makeRpcCallString(list[0],list[1]);
       else
-      jsonreq["method"] = list[0];
-      QJsonArray jarray;
-      if(list.size()>1)
-      jarray.push_back( list[1]);
-      jsonreq["params"] = jarray;
-      jsonreq["id"] = 0;
-      QJsonDocument doc( jsonreq );
-      strBuff = doc.toJson();
-      std::cout << strBuff.toStdString() << std::endl;
-      m_socket->write( strBuff.toStdString().c_str(), strBuff.length() );
+      barray = makeRpcCallString(list[0]);
+      std::cout << barray.toStdString() << std::endl;
+      m_socket->write( barray.toStdString().c_str(), barray.length() );
+      if(list[0] == "sync")
+      {
+          m_socket->waitForReadyRead();
+          m_socket->readAll();
+          barray = makeRpcCallString("filelist");
+          m_socket->write( barray.toStdString().c_str(), barray.length() );
+          m_socket->waitForReadyRead();
+          barray = m_socket->readAll();
+          QByteArray bar;
+          bar.append(barray);
+          QJsonDocument doc(QJsonDocument::fromJson(bar));
+          QJsonArray jarr = doc.array();
+          downloadFiles("",jarr);
+          //uploadFiles("");
+      }
       if(list[0] == "download" && list.size()==2)
       {
-receiveOneFile(list[1]);
+        receiveOneFile(list[1]);
       }
       if(list[0] == "upload" && list.size()==2)
       {
-sendOneFile(list[1]);
+        sendOneFile(list[1]);
       }
       if(!ignoreRead)
       m_socket->waitForReadyRead();
@@ -98,7 +99,7 @@ void TCPClient::receiveOneFile(QString filename)
     QJsonDocument doc( jsonreq );
     strBuff = doc.toJson();
     m_socket->write( strBuff.toStdString().c_str(), strBuff.length() );
-    QFile file(filename);
+    QFile file(m_path+"//"+filename);
     file.open(QIODevice::ReadWrite);
         m_socket->waitForReadyRead();
         char arr[4];
@@ -119,6 +120,63 @@ void TCPClient::receiveOneFile(QString filename)
         }
         strBuff = "ok";
         m_socket->write( strBuff.toStdString().c_str(), strBuff.length() );
+}
+
+void TCPClient::uploadFiles(QString folderPath)
+{
+    QDir dir(m_path+"\\"+folderPath);
+        QStringList nameFilter;
+        QFileInfoList clientFolderList = dir.entryInfoList( nameFilter, QDir::Files | QDir::Dirs);
+        QFileInfo fileinfo;
+        QString strBuff;
+        QByteArray barray;
+for(auto i : clientFolderList)
+{
+    if(i.isDir() && i.fileName()!= "." && i.fileName()!="..")
+    {
+        QString fpath = i.path() + "\\" + i.fileName();
+    uploadFiles(i.fileName());
+    }
+    if(i.isFile())
+    {
+   strBuff = makeRpcCallString("upload",folderPath+"\\"+i.fileName());
+   m_socket->write( strBuff.toStdString().c_str(), strBuff.length() );
+   sendOneFile(folderPath+"\\"+i.fileName());
+    m_socket->waitForReadyRead();
+    barray = m_socket->readAll();
+    }
+}
+ignoreRead = true;
+}
+
+void TCPClient::downloadFiles(QString path,QJsonArray jarr)
+{
+    QString strBuff;
+    QByteArray barray;
+    QString absPath = m_path + "\\" + path;
+for(int i=0;i<jarr.size();i++)
+{
+    if(jarr[i].isArray())
+    {
+        QDir dir;
+        QFile fileForDelete(absPath + "\\" +jarr[i-1].toString());
+        fileForDelete.remove();
+        dir.mkdir(absPath + "\\" +jarr[i-1].toString());
+        downloadFiles(path + "\\" + jarr[i-1].toString(),jarr[i].toArray());
+    }
+    else
+    {
+    strBuff = makeRpcCallString("exist",jarr[i].toString());
+    m_socket->write( strBuff.toStdString().c_str(), strBuff.length() );
+    receiveOneFile(path+ "\\" +jarr[i].toString());
+    if(QFile(jarr[i].toString()).exists())
+    {
+     m_socket->waitForReadyRead();
+     barray = m_socket->readAll();
+    }
+    }
+}
+ignoreRead = true;
 }
 
 void TCPClient::sendOneFile(QString filename)
@@ -149,12 +207,5 @@ sendedBytes+=readedBytes;
    }
 }
 
-qint64 byteArrayToFileSize(char *array)
-{
 
-}
 
-void fileSizeToByteArray(qint64 fsize, char *array)
-{
-
-}

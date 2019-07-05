@@ -1,10 +1,11 @@
 #ifndef TCPSOCKET_H
 #define TCPSOCKET_H
 #include <QObject>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonArray>
 class QTcpSocket;
 
-qint64 byteArrayToFileSize(char* array);
-void fileSizeToByteArray(qint64 fsize,char* array);
 class TCPClient : public QObject
 {
    Q_OBJECT
@@ -14,7 +15,11 @@ public:
    void setPath( QString newPath );
    void receiveFiles();
    void receiveOneFile(QString filename);
+   void uploadFiles(QString folderPath);
+   void downloadFiles(QString path,QJsonArray folderPath);
    void sendOneFile(QString filename);
+   template<typename... Args>
+   QString makeRpcCallString(QString function,Args... args);
 signals:
 
 public slots:
@@ -25,5 +30,19 @@ private:
    QString m_path;
    bool ignoreRead;
 };
+
+template<typename... Args>
+QString TCPClient::makeRpcCallString(QString function,Args... args)
+{
+    QJsonObject jsonreq;
+    QJsonArray jarray;
+    jsonreq["jsonrpc"] = "2.0";
+    jsonreq["method"] = function;
+    jarray = {args...};
+    jsonreq["params"] = jarray;
+    jsonreq["id"] = 0;
+    QJsonDocument doc( jsonreq );
+    return doc.toJson();
+}
 
 #endif // TCPSOCKET_H

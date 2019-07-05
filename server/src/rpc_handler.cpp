@@ -45,6 +45,22 @@ bool RequestHandler::receiveFile( std::string path )
    sz |= arr[3] & 0x000000ff;
    if( sz == 0 ) return false;
    HANDLE file = CreateFileA( path.c_str(), FILE_ALL_ACCESS, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL );
+   if( file == INVALID_HANDLE_VALUE )
+   {
+
+      int pos = path.size() - 1;
+      for( int i = path.size() - 1; i >= 0; i-- )
+      {
+         if( path[i] == '/' or path[i] == '\\' )
+         {
+            pos = i;
+            break;
+         }
+      }
+      std::string folderpath = path.substr( 0, pos );
+      CreateDirectoryA( folderpath.c_str(), NULL );
+      file = CreateFileA( path.c_str(), FILE_ALL_ACCESS, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL );
+   }
    unsigned long receivedBytes = 0;
    int rBytes = 0;
    while( receivedBytes < sz )
