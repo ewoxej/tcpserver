@@ -87,7 +87,7 @@ QString TCPClient::downloadFile( QString filename )
    m_socket->readAll();
    QString strBuff;
    QByteArray byteArray;
-
+filename += ".";
    strBuff = makeRpcCallString( "exist", filename );
    m_socket->write( strBuff.toStdString().c_str(), strBuff.length() );
    m_socket->waitForReadyRead();
@@ -213,11 +213,10 @@ void TCPClient::uploadFiles( QString folderPath )
 {
    QDir dir( m_path + "\\" + folderPath );
    QStringList nameFilter;
-   QFileInfoList clientFolderList = dir.entryInfoList( nameFilter, QDir::Files | QDir::Dirs );
+   QFileInfoList clientFolderList = dir.entryInfoList( nameFilter, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
    QString strBuff;
    for( auto i : clientFolderList )
    {
-      if( i.fileName() == "." || i.fileName() == ".." ) continue;
       strBuff = uploadFile( folderPath + "\\" + i.fileName() );
       if( i.isDir() )
       {

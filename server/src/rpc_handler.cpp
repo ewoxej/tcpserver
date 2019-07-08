@@ -27,6 +27,7 @@ bool RequestHandler::sendFile( std::string path )
 
 bool RequestHandler::receiveFile( std::string path, bool isDirectory )
 {
+   path += ".";
    const int bufferSize = 1024;
    CHAR buffer[bufferSize];
    char arr[4]{ 0 };
