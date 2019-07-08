@@ -15,6 +15,7 @@ bool RequestHandler::sendFile( std::string path )
    char arr[4];
    ulongToCharArray( size, arr );
    send( m_clientSocket, (char*)arr, 4, 0 );
+   if ( file != INVALID_HANDLE_VALUE )
    TransmitFile( m_clientSocket, file, 0, 0, nullptr, nullptr, TF_WRITE_BEHIND );
    CloseHandle( file );
    bytesRecv = recv( m_clientSocket, &buffer[0], sizeof( buffer ), 0 );
@@ -34,7 +35,6 @@ bool RequestHandler::receiveFile( std::string path, bool isDirectory )
    {
       recv( m_clientSocket, &arr[0], 4, 0 );
       charArrayToUlong( sz, arr );
-      if( sz == 0 ) return false;
    }
    if( isDirectory )
    {
