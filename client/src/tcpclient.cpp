@@ -186,6 +186,7 @@ QString TCPClient::syncFiles()
    QJsonArray jarr;
    QString strBuff;
    strBuff = makeRpcCallString( "filelist" );
+   uploadFiles( "" );
    m_socket->write( strBuff.toStdString().c_str(), strBuff.length() );
    m_socket->waitForReadyRead();
    strBuff = m_socket->readAll();
@@ -194,7 +195,7 @@ QString TCPClient::syncFiles()
    QJsonDocument doc( QJsonDocument::fromJson( bar ) );
    jarr = doc.array();
    downloadFiles( "", jarr );
-      uploadFiles( "" );
+
    return "true";
 }
 
