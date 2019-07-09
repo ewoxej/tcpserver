@@ -218,6 +218,7 @@ void TCPClient::uploadFiles( QString folderPath )
    for( auto i : clientFolderList )
    {
       strBuff = uploadFile( folderPath + "\\" + i.fileName() );
+      std::cout<< "upload:" << folderPath.toStdString() + "\\" + i.fileName().toStdString()<< " - "<<strBuff.toStdString()<<"\n";
       if( i.isDir() )
       {
          QString fpath = i.path() + "\\" + i.fileName();
@@ -238,7 +239,8 @@ void TCPClient::downloadFiles( QString path, QJsonArray jarr )
       }
       else
       {
-         downloadFile( path + "\\" + jarr[i].toString() );
+         strBuff = downloadFile( path + "\\" + jarr[i].toString() );
+         std::cout<<"download:"<<path.toStdString() << "\\" << jarr[i].toString().toStdString()<<" - "<<strBuff.toStdString()<<"\n";
       }
    }
 
