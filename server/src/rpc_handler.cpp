@@ -8,7 +8,7 @@ bool RequestHandler::sendFile( std::string path )
    const int bufferSize = 1024;
    CHAR buffer[bufferSize];
    DWORD bytesRecv = 0;
-   HANDLE file = CreateFileA( path.c_str(), FILE_ALL_ACCESS, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr );
+   HANDLE file = CreateFileA( path.c_str(), FILE_READ_DATA, GENERIC_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr );
    DWORD size = GetFileSize( file, nullptr );
    if( file == INVALID_HANDLE_VALUE )
       size = 0;
@@ -44,7 +44,6 @@ bool RequestHandler::receiveFile( std::string path, bool isDirectory )
    else
    {
       HANDLE file = CreateFileA( path.c_str(), FILE_ALL_ACCESS, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr );
-
       unsigned long receivedBytes = 0;
       int rBytes = 0;
       while( receivedBytes < sz )

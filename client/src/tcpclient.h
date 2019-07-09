@@ -20,8 +20,8 @@ public:
    QString isExist( QString filename );
    QString syncFiles();
    QString fileList();
-   void uploadFiles( QString folderPath );
-   void downloadFiles( QString path, QJsonArray folderPath );
+   bool uploadFiles( QString folderPath );
+   bool downloadFiles( QString path, QJsonArray folderPath );
    template<typename... Args>
    QString makeRpcCallString( QString function, Args... args );
 private:

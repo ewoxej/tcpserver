@@ -183,10 +183,11 @@ QString TCPClient::isExist( QString filename )
 
 QString TCPClient::syncFiles()
 {
+    bool downloadIsOk,uploadIsOk;
    QJsonArray jarr;
    QString strBuff;
    strBuff = makeRpcCallString( "filelist" );
-   uploadFiles( "" );
+   uploadIsOk = uploadFiles( "" );
    m_socket->write( strBuff.toStdString().c_str(), strBuff.length() );
    m_socket->waitForReadyRead();
    strBuff = m_socket->readAll();
@@ -194,8 +195,9 @@ QString TCPClient::syncFiles()
    bar.append( strBuff );
    QJsonDocument doc( QJsonDocument::fromJson( bar ) );
    jarr = doc.array();
-   downloadFiles( "", jarr );
-   return "true";
+   downloadIsOk = downloadFiles( "", jarr );
+if (downloadIsOk && uploadIsOk) return "true";
+else return "false";
 }
 
 QString TCPClient::fileList()
@@ -209,8 +211,10 @@ QString TCPClient::fileList()
 }
 
 
-void TCPClient::uploadFiles( QString folderPath )
+bool TCPClient::uploadFiles( QString folderPath )
 {
+    bool success = true;
+    bool nestedSuccess = true;
    QDir dir( m_path + "\\" + folderPath );
    QStringList nameFilter;
    QFileInfoList clientFolderList = dir.entryInfoList( nameFilter, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
@@ -218,32 +222,35 @@ void TCPClient::uploadFiles( QString folderPath )
    for( auto i : clientFolderList )
    {
       strBuff = uploadFile( folderPath + "\\" + i.fileName() );
-      std::cout<< "upload:" << folderPath.toStdString() + "\\" + i.fileName().toStdString()<< " - "<<strBuff.toStdString()<<"\n";
+      if(strBuff != "true") success = false;
       if( i.isDir() )
       {
          QString fpath = i.path() + "\\" + i.fileName();
-         uploadFiles( folderPath + "\\" + i.fileName() );
+         if(!uploadFiles( folderPath + "\\" + i.fileName() )) nestedSuccess = false;
       }
    }
+   return (nestedSuccess && success);
 }
 
-void TCPClient::downloadFiles( QString path, QJsonArray jarr )
+bool TCPClient::downloadFiles( QString path, QJsonArray jarr )
 {
+    bool success = true;
+    bool nestedSuccess = true;
    QString strBuff;
    QString absPath = m_path + "\\" + path;
    for( int i = 0; i < jarr.size(); i++ )
    {
       if( jarr[i].isArray() )
       {
-         downloadFiles( path + "\\" + jarr[i - 1].toString(), jarr[i].toArray() );
+         if(!downloadFiles( path + "\\" + jarr[i - 1].toString(), jarr[i].toArray() )) nestedSuccess = false;
       }
       else
       {
          strBuff = downloadFile( path + "\\" + jarr[i].toString() );
-         std::cout<<"download:"<<path.toStdString() << "\\" << jarr[i].toString().toStdString()<<" - "<<strBuff.toStdString()<<"\n";
+         if(strBuff != "true") success = false;
       }
    }
-
+return (nestedSuccess && success);
 }
 
 
