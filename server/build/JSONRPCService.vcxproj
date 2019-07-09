@@ -160,7 +160,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\third_party\json-develop\single_include\nlohmann\jsonrp.cpp" />
-    <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\rpc_handler.cpp" />
     <ClCompile Include="..\src\socket_serve.cpp" />
   </ItemGroup>
