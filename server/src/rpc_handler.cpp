@@ -120,13 +120,11 @@ jsonrpcpp::response_ptr RequestHandler::isExist( const jsonrpcpp::Id & id, const
 {
    std::string pathSrc = params.get( 0 );
    std::string res = "false";
-   HANDLE file = CreateFileA( pathSrc.c_str(), FILE_ALL_ACCESS, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr );
-   if( file != INVALID_HANDLE_VALUE )
-      res = "true";
    DWORD dwAttr = GetFileAttributesA( pathSrc.c_str() );
+   if( dwAttr != INVALID_FILE_ATTRIBUTES )
+      res = "true";
    if( dwAttr != 0xffffffff && ( dwAttr & FILE_ATTRIBUTE_DIRECTORY ) )
       res = "dir";
-   CloseHandle( file );
    return std::make_shared<jsonrpcpp::Response>( id, res );
 }
 

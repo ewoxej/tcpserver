@@ -195,7 +195,6 @@ QString TCPClient::syncFiles()
    QJsonDocument doc( QJsonDocument::fromJson( bar ) );
    jarr = doc.array();
    downloadFiles( "", jarr );
-
    return "true";
 }
 
