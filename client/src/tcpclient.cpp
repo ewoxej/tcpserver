@@ -214,11 +214,13 @@ void TCPClient::uploadFiles( QString folderPath )
    QDir dir( m_path + "\\" + folderPath );
    QStringList nameFilter;
    QFileInfoList clientFolderList = dir.entryInfoList( nameFilter, QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
+   for(auto i: clientFolderList)
+       std::cout<<i.filePath().toStdString()<<"\n";
    QString strBuff;
    for( auto i : clientFolderList )
    {
       strBuff = uploadFile( folderPath + "\\" + i.fileName() );
-      std::cout<< "upload:" << folderPath.toStdString() + "\\" + i.fileName().toStdString()<< " - "<<strBuff.toStdString()<<"\n";
+      //std::cout<< "upload:" << folderPath.toStdString() + "\\" + i.fileName().toStdString()<< " - "<<strBuff.toStdString()<<"\n";
       if( i.isDir() )
       {
          QString fpath = i.path() + "\\" + i.fileName();
@@ -240,7 +242,7 @@ void TCPClient::downloadFiles( QString path, QJsonArray jarr )
       else
       {
          strBuff = downloadFile( path + "\\" + jarr[i].toString() );
-         std::cout<<"download:"<<path.toStdString() << "\\" << jarr[i].toString().toStdString()<<" - "<<strBuff.toStdString()<<"\n";
+         //std::cout<<"download:"<<path.toStdString() << "\\" << jarr[i].toString().toStdString()<<" - "<<strBuff.toStdString()<<"\n";
       }
    }
 
