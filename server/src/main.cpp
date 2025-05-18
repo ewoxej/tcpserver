@@ -1,14 +1,11 @@
-#define _WINSOCK2API_
+#include <WinSock2.h>
 #include <Windows.h>
+#include "rpc_handler.h"
 #include "socket_serve.h"
 #include <CommCtrl.h>
 #include <shlobj.h>
 #pragma comment(lib,"Shell32.lib")
 #include <tchar.h>
-
-#include <thread>
-#include <string>
-
 #include "Resource.h"
 
 HINSTANCE hInst;
@@ -18,11 +15,12 @@ DWORD longIP;
 UINT port = 800;
 char serviceName[MAX_PATH];
 char folderPath[MAX_PATH];
+SocketServer server;
 std::thread serverTh;
-bool isWorking = true;
 
 INT_PTR APIENTRY DlgProc( HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lParam );
 BOOL CommonFileDlg( HWND hWnd, LPWSTR pstrFileName, LPWSTR filters, BOOL open );
+void serveClient( SOCKET clSocket );
 
 LRESULT CALLBACK WndProc( HWND window, UINT message, WPARAM wParam, LPARAM lParam )
 {
@@ -45,12 +43,11 @@ LRESULT CALLBACK WndProc( HWND window, UINT message, WPARAM wParam, LPARAM lPara
       case IDB_EXIT:
       {
          Shell_NotifyIcon( NIM_DELETE, &Icon );
-         shutdown( activeSocket, 2 );
-         closesocket( activeSocket );
-         isWorking = false;
+         shutdown( server.getActiveSocket(), SD_BOTH );
+         closesocket( server.getActiveSocket() );
+         server.setWorking( false );
          if( serverTh.joinable() )
             serverTh.join();
-         WSACleanup();
          PostQuitMessage( 0 );
       }
       break;
@@ -162,13 +159,14 @@ INT_PTR APIENTRY DlgProc( HWND hwndDlg, UINT message, WPARAM wParam, LPARAM lPar
          GetWindowTextA( GetDlgItem( hwndDlg, IDC_EDIT2 ), serviceName, MAX_PATH );
          GetWindowTextA( GetDlgItem( hwndDlg, IDC_EDIT3 ), cport, portArraySize );
          port = std::stoi( cport );
-         shutdown( activeSocket, 2 );
-         closesocket( activeSocket );
-         isWorking = false;
+         shutdown( server.getActiveSocket(), SD_BOTH );
+         closesocket( server.getActiveSocket() );
+         server.setWorking( false );
          if( serverTh.joinable() )
             serverTh.join();
-         isWorking = true;
-         serverTh = std::thread( socketInit, longIP, port );
+         server.setWorking( true );
+         server.connectTo( longIP, port );
+         serverTh = std::thread( []() {server.accept( serveClient ); } );
       }
 
       case IDCANCEL:
@@ -198,4 +196,40 @@ BOOL CommonFileDlg( HWND hWnd, LPWSTR pstrFileName, LPWSTR filters, BOOL open )
       return 1;
    }
    return 0;
+}
+
+void serveClient( SOCKET clSocket )
+{
+   const int bufferSize = 1024;
+   const int indent = 3;
+   SOCKET clientSocket;
+   RequestHandler handler;
+   handler.setFolderPath( folderPath );
+   clientSocket = clSocket;
+   char buff[bufferSize];
+   send( clientSocket, serviceName, sizeof( serviceName ), 0 );
+   int bytesRecv = 0;
+   while( bytesRecv != SOCKET_ERROR )
+   {
+      buff[0] = 0;
+      bytesRecv = recv( clientSocket, &buff[0], sizeof( buff ) - 1, 0 );
+      if( bytesRecv > 0 )
+      {
+         buff[bytesRecv] = 0;
+      }
+
+      jsonrpcpp::response_ptr resp = handler.parseRequest( buff, clSocket );
+      if( !resp )
+      {
+         strcpy( buff, "error: incorrect request" );
+         send( clientSocket, buff, strlen( buff ), 0 );
+      }
+      else
+      {
+         std::string strRes = resp->result.dump( indent );
+         send( clientSocket, strRes.c_str(), strRes.length(), 0 );
+      }
+   }
+
+   closesocket( clientSocket );
 }
